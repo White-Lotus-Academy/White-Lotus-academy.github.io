@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asteroid Vocabulary Game</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: black;
+    }
+    body {
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>Asteroid Vocabulary Game</h1>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    // Setup canvas
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Game variables
+    const vocab = [
+      { word: "planet", definition: "A celestial body orbiting a star" },
+      { word: "asteroid", definition: "A small rocky body orbiting the sun" },
+      { word: "galaxy", definition: "A system of millions or billions of stars" },
+      { word: "comet", definition: "A celestial object with a nucleus of ice and dust" },
+      { word: "orbit", definition: "The path of an object around a point in space" },
+    ];
+    let score = 0;
+    let lives = 3;
+    let currentDefinition = "";
+    let options = [];
+    let correctWord = "";
+    let asteroids = [];
+    const asteroidSpeed = 2;
+
+    // Random utility function
+    function getRandomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    // Spawn asteroids
+    function spawnAsteroids() {
+      options = vocab.sort(() => Math.random() - 0.5).slice(0, 3); // Randomize words
+      correctWord = options[getRandomInt(options.length)];
+      currentDefinition = correctWord.definition;
+      asteroids = options.map((opt, i) => ({
+        word: opt.word,
+        x: 200 + i * 200,
+        y: -50,
+      }));
+    }
+
+    // Initialize game
+    spawnAsteroids();
+
+    // Draw asteroid
+    function drawAsteroid(asteroid) {
+      ctx.beginPath();
+      ctx.arc(asteroid.x, asteroid.y, 30, 0, Math.PI * 2);
+      ctx.fillStyle = "red";
+      ctx.fill();
+      ctx.closePath();
+
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText(asteroid.word, asteroid.x, asteroid.y - 40);
+    }
+
+    // Game loop
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Move and draw asteroids
+      asteroids.forEach((asteroid) => {
+        asteroid.y += asteroidSpeed;
+        drawAsteroid(asteroid);
+
+        // Check if asteroid is missed
+        if (asteroid.y > canvas.height) {
+          lives--;
+          if (lives <= 0) {
+            alert("Game Over! Your score: " + score);
+            document.location.reload();
+          }
+          spawnAsteroids();
+        }
+      });
+
+      // Draw definition
+      ctx.fillStyle = "blue";
+      ctx.font = "20px Arial";
+      ctx.fillText(currentDefinition, canvas.width / 2, canvas.height - 30);
+
+      // Draw score and lives
+      ctx.fillStyle = "white";
+      ctx.font = "16px Arial";
+      ctx.fillText("Score: " + score, 10, 20);
+      ctx.fillText("Lives: " + lives, 10, 40);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Handle clicks
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      asteroids.forEach((asteroid) => {
+        if (
+          mouseX > asteroid.x - 30 &&
+          mouseX < asteroid.x + 30 &&
+          mouseY > asteroid.y - 30 &&
+          mouseY < asteroid.y + 30
+        ) {
+          if (asteroid.word === correctWord.word) {
+            score++;
+            spawnAsteroids();
+          } else {
+            lives--;
+            if (lives <= 0) {
+              alert("Game Over! Your score: " + score);
+              document.location.reload();
+            }
+          }
+        }
+      });
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
